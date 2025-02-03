@@ -1,4 +1,6 @@
-from typing import Any, Dict, Optional, Tuple
+"""Contains the LightningDataModule for the MNSIT dataset."""
+
+from typing import Any
 
 import torch
 from lightning import LightningDataModule
@@ -50,7 +52,7 @@ class MNISTDataModule(LightningDataModule):
 
     Read the docs:
         https://lightning.ai/docs/pytorch/latest/data/datamodule.html
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -58,7 +60,7 @@ class MNISTDataModule(LightningDataModule):
         train_val_test_split: tuple[int, int, int] = (55_000, 5_000, 10_000),
         batch_size: int = 64,
         num_workers: int = 0,
-        pin_memory: bool = False,
+        pin_memory: bool = False,  # noqa: FBT001, FBT002
     ) -> None:
         """Initialize a `MNISTDataModule`.
 
@@ -67,12 +69,18 @@ class MNISTDataModule(LightningDataModule):
         :param batch_size: The batch size. Defaults to `64`.
         :param num_workers: The number of workers. Defaults to `0`.
         :param pin_memory: Whether to pin memory. Defaults to `False`.
-        """
+        """  # noqa: E501
         super().__init__()
 
         # this line allows to access init params with 'self.hparams' attribute
         # also ensures init params will be stored in ckpt
         self.save_hyperparameters(logger=False)
+
+        self.data_dir = data_dir
+        self.train_val_test_split = train_val_test_split
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.pin_memory = pin_memory
 
         # data transformations
         self.transforms = transforms.Compose(
@@ -94,17 +102,16 @@ class MNISTDataModule(LightningDataModule):
         return 10
 
     def prepare_data(self) -> None:
-        """Download data if needed. Lightning ensures that `self.prepare_data()` is called only
-        within a single process on CPU, so you can safely add your downloading logic within. In
-        case of multi-node training, the execution of this hook depends upon
-        `self.prepare_data_per_node()`.
+        """Download data if needed.
+
+        Lightning ensures that `self.prepare_data()` is called only within a single process on CPU, so you can safely add your downloading logic within. In case of multi-node training, the execution of this hook depends upon `self.prepare_data_per_node()`.
 
         Do not use it to assign state (self.x = y).
-        """
-        MNIST(self.hparams.data_dir, train=True, download=True)
-        MNIST(self.hparams.data_dir, train=False, download=True)
+        """  # noqa: E501
+        MNIST(self.data_dir, train=True, download=True)
+        MNIST(self.data_dir, train=False, download=True)
 
-    def setup(self, stage: str | None = None) -> None:
+    def setup(self, stage: str | None = None) -> None:  # noqa: ARG002
         """Load data. Set variables: `self.data_train`, `self.data_val`, `self.data_test`.
 
         This method is called by Lightning before `trainer.fit()`, `trainer.validate()`, `trainer.test()`, and
@@ -113,33 +120,32 @@ class MNISTDataModule(LightningDataModule):
         `self.setup()` once the data is prepared and available for use.
 
         :param stage: The stage to setup. Either `"fit"`, `"validate"`, `"test"`, or `"predict"`. Defaults to ``None``.
-        """
+        """  # noqa: E501
         # Divide batch size by the number of devices.
         if self.trainer is not None:
-            if self.hparams.batch_size % self.trainer.world_size != 0:
+            if self.batch_size % self.trainer.world_size != 0:
+                msg = f"Batch size ({self.batch_size}) is not divisible by the number of devices ({self.trainer.world_size})."  # noqa: E501
                 raise RuntimeError(
-                    f"Batch size ({self.hparams.batch_size}) is not divisible by the number of devices ({self.trainer.world_size}).",
+                    msg,
                 )
-            self.batch_size_per_device = (
-                self.hparams.batch_size // self.trainer.world_size
-            )
+            self.batch_size_per_device = self.batch_size // self.trainer.world_size
 
         # load and split datasets only if not loaded already
         if not self.data_train and not self.data_val and not self.data_test:
             trainset = MNIST(
-                self.hparams.data_dir,
+                self.data_dir,
                 train=True,
                 transform=self.transforms,
             )
             testset = MNIST(
-                self.hparams.data_dir,
+                self.data_dir,
                 train=False,
                 transform=self.transforms,
             )
             dataset = ConcatDataset(datasets=[trainset, testset])
             self.data_train, self.data_val, self.data_test = random_split(
                 dataset=dataset,
-                lengths=self.hparams.train_val_test_split,
+                lengths=self.train_val_test_split,
                 generator=torch.Generator().manual_seed(42),
             )
 
@@ -151,8 +157,8 @@ class MNISTDataModule(LightningDataModule):
         return DataLoader(
             dataset=self.data_train,
             batch_size=self.batch_size_per_device,
-            num_workers=self.hparams.num_workers,
-            pin_memory=self.hparams.pin_memory,
+            num_workers=self.num_workers,
+            pin_memory=self.pin_memory,
             shuffle=True,
         )
 
@@ -164,8 +170,8 @@ class MNISTDataModule(LightningDataModule):
         return DataLoader(
             dataset=self.data_val,
             batch_size=self.batch_size_per_device,
-            num_workers=self.hparams.num_workers,
-            pin_memory=self.hparams.pin_memory,
+            num_workers=self.num_workers,
+            pin_memory=self.pin_memory,
             shuffle=False,
         )
 
@@ -177,32 +183,30 @@ class MNISTDataModule(LightningDataModule):
         return DataLoader(
             dataset=self.data_test,
             batch_size=self.batch_size_per_device,
-            num_workers=self.hparams.num_workers,
-            pin_memory=self.hparams.pin_memory,
+            num_workers=self.num_workers,
+            pin_memory=self.pin_memory,
             shuffle=False,
         )
 
     def teardown(self, stage: str | None = None) -> None:
-        """Lightning hook for cleaning up after `trainer.fit()`, `trainer.validate()`,
-        `trainer.test()`, and `trainer.predict()`.
+        """Lightning hook for cleaning up after `trainer.fit()`, `trainer.validate()`,`trainer.test()`, and `trainer.predict()`.
 
         :param stage: The stage being torn down. Either `"fit"`, `"validate"`, `"test"`, or `"predict"`.
             Defaults to ``None``.
-        """
+        """  # noqa: E501
 
     def state_dict(self) -> dict[Any, Any]:
-        """Called when saving a checkpoint. Implement to generate and save the datamodule state.
+        """Call when saving a checkpoint. Implement to generate and save the datamodule state.
 
         :return: A dictionary containing the datamodule state that you want to save.
-        """
+        """  # noqa: E501
         return {}
 
     def load_state_dict(self, state_dict: dict[str, Any]) -> None:
-        """Called when loading a checkpoint. Implement to reload datamodule state given datamodule
-        `state_dict()`.
+        """Call when loading a checkpoint. Implement to reload datamodule state given datamodule `state_dict()`.
 
         :param state_dict: The datamodule state returned by `self.state_dict()`.
-        """
+        """  # noqa: E501
 
 
 if __name__ == "__main__":

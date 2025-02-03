@@ -1,4 +1,5 @@
-from typing import Any, Dict, Tuple
+"""Example of a `LightningModule` for MNIST classification."""
+from typing import Any
 
 import torch
 from lightning import LightningModule
@@ -44,7 +45,7 @@ class MNISTLitModule(LightningModule):
         net: torch.nn.Module,
         optimizer: torch.optim.Optimizer,
         scheduler: torch.optim.lr_scheduler,
-        compile: bool,
+        compile: bool,  # noqa: FBT001, A002
     ) -> None:
         """Initialize a `MNISTLitModule`.
 
@@ -59,6 +60,9 @@ class MNISTLitModule(LightningModule):
         self.save_hyperparameters(logger=False)
 
         self.net = net
+        self.optimizer = optimizer
+        self.scheduler = scheduler
+        self.compile = compile
 
         # loss function
         self.criterion = torch.nn.CrossEntropyLoss()
@@ -86,8 +90,9 @@ class MNISTLitModule(LightningModule):
 
     def on_train_start(self) -> None:
         """Lightning hook that is called when training begins."""
-        # by default lightning executes validation step sanity checks before training starts,
-        # so it's worth to make sure validation metrics don't store results from these checks
+        # by default lightning executes validation step sanity checks before training
+        # starts, so it's worth to make sure validation metrics don't store results from
+        # these checks
         self.val_loss.reset()
         self.val_acc.reset()
         self.val_acc_best.reset()
@@ -104,7 +109,7 @@ class MNISTLitModule(LightningModule):
             - A tensor of losses.
             - A tensor of predictions.
             - A tensor of target labels.
-        """
+        """  # noqa: E501
         x, y = batch
         logits = self.forward(x)
         loss = self.criterion(logits, y)
@@ -114,7 +119,7 @@ class MNISTLitModule(LightningModule):
     def training_step(
         self,
         batch: tuple[torch.Tensor, torch.Tensor],
-        batch_idx: int,
+        batch_idx: int,  # noqa: ARG002
     ) -> torch.Tensor:
         """Perform a single training step on a batch of data from the training set.
 
@@ -122,7 +127,7 @@ class MNISTLitModule(LightningModule):
             labels.
         :param batch_idx: The index of the current batch.
         :return: A tensor of losses between model predictions and targets.
-        """
+        """  # noqa: E501
         loss, preds, targets = self.model_step(batch)
 
         # update and log metrics
@@ -152,14 +157,14 @@ class MNISTLitModule(LightningModule):
     def validation_step(
         self,
         batch: tuple[torch.Tensor, torch.Tensor],
-        batch_idx: int,
+        batch_idx: int,  # noqa: ARG002
     ) -> None:
         """Perform a single validation step on a batch of data from the validation set.
 
         :param batch: A batch of data (a tuple) containing the input tensor of images and target
             labels.
         :param batch_idx: The index of the current batch.
-        """
+        """  # noqa: E501
         loss, preds, targets = self.model_step(batch)
 
         # update and log metrics
@@ -172,8 +177,8 @@ class MNISTLitModule(LightningModule):
         """Lightning hook that is called when a validation epoch ends."""
         acc = self.val_acc.compute()  # get current val acc
         self.val_acc_best(acc)  # update best so far val acc
-        # log `val_acc_best` as a value through `.compute()` method, instead of as a metric object
-        # otherwise metric would be reset by lightning after each epoch
+        # log `val_acc_best` as a value through `.compute()` method, instead of as a
+        # metric object otherwise metric would be reset by lightning after each epoch
         self.log(
             "val/acc_best",
             self.val_acc_best.compute(),
@@ -184,14 +189,14 @@ class MNISTLitModule(LightningModule):
     def test_step(
         self,
         batch: tuple[torch.Tensor, torch.Tensor],
-        batch_idx: int,
+        batch_idx: int,  # noqa: ARG002
     ) -> None:
         """Perform a single test step on a batch of data from the test set.
 
         :param batch: A batch of data (a tuple) containing the input tensor of images and target
             labels.
         :param batch_idx: The index of the current batch.
-        """
+        """  # noqa: E501
         loss, preds, targets = self.model_step(batch)
 
         # update and log metrics
@@ -210,20 +215,18 @@ class MNISTLitModule(LightningModule):
         """Lightning hook that is called when a test epoch ends."""
 
     def setup(self, stage: str) -> None:
-        """Lightning hook that is called at the beginning of fit (train + validate), validate,
-        test, or predict.
+        """Lightning hook that is called at the beginning of fit (train + validate), validate, test, or predict.
 
         This is a good hook when you need to build models dynamically or adjust something about
         them. This hook is called on every process when using DDP.
 
         :param stage: Either `"fit"`, `"validate"`, `"test"`, or `"predict"`.
-        """
-        if self.hparams.compile and stage == "fit":
+        """  # noqa: E501
+        if self.compile and stage == "fit":
             self.net = torch.compile(self.net)
 
     def configure_optimizers(self) -> dict[str, Any]:
-        """Choose what optimizers and learning-rate schedulers to use in your optimization.
-        Normally you'd need one. But in the case of GANs or similar you might have multiple.
+        """Choose what optimizers and learning-rate schedulers to use in your optimization.Normally you'd need one. But in the case of GANs or similar you might have multiple.
 
         Examples
         --------
@@ -231,10 +234,10 @@ class MNISTLitModule(LightningModule):
 
         :return: A dict containing the configured optimizers and learning-rate schedulers to be used for training.
 
-        """
-        optimizer = self.hparams.optimizer(params=self.trainer.model.parameters())
-        if self.hparams.scheduler is not None:
-            scheduler = self.hparams.scheduler(optimizer=optimizer)
+        """  # noqa: E501
+        optimizer = self.optimizer(params=self.trainer.model.parameters())
+        if self.scheduler is not None:
+            scheduler = self.scheduler(optimizer=optimizer)
             return {
                 "optimizer": optimizer,
                 "lr_scheduler": {
