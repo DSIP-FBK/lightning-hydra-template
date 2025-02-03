@@ -1,14 +1,13 @@
-from typing import Any, Dict, List, Optional, Tuple
+"""Main entry point for training."""
+from typing import TYPE_CHECKING, Any
 
 import hydra
-import lightning as L
+import lightning
 import rootutils
 import torch
-from lightning import Callback, LightningDataModule, LightningModule, Trainer
-from lightning.pytorch.loggers import Logger
 from omegaconf import DictConfig
 
-rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
+rootutils.setup_root(__file__, pythonpath=True)
 # ------------------------------------------------------------------------------------ #
 # the setup_root above is equivalent to:
 # - adding project root dir to PYTHONPATH
@@ -36,28 +35,33 @@ from src.utils import (
     task_wrapper,
 )
 
+if TYPE_CHECKING:
+    from lightning import Callback, LightningDataModule, LightningModule, Trainer
+    from lightning.pytorch.loggers import Logger
+
 log = RankedLogger(__name__, rank_zero_only=True)
 
 
 @task_wrapper
 def train(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Trains the model. Can additionally evaluate on a testset, using best weights obtained during
-    training.
+    """Trains the model. Can additionally evaluate on a testset, using best weights obtained during training.
 
-    This method is wrapped in optional @task_wrapper decorator, that controls the behavior during
-    failure. Useful for multiruns, saving info about the crash, etc.
+    Can additionally evaluate on a testset, using best weightsobtained during training.
+
+    This method is wrapped in optional @task_wrapper decorator, that controls the
+    behavior duringfailure. Useful for multiruns, saving info about the crash, etc.
 
     :param cfg: A DictConfig configuration composed by Hydra.
     :return: A tuple with metrics and dict with all instantiated objects.
-    """
+    """  # noqa: E501
     # set seed for random number generators in pytorch, numpy and python.random
     if cfg.get("seed"):
-        L.seed_everything(cfg.seed, workers=True)
+        lightning.seed_everything(cfg.seed, workers=True)
 
-    log.info(f"Instantiating datamodule <{cfg.data._target_}>")
+    log.info(f"Instantiating datamodule <{cfg.data._target_}>")  # noqa: G004, SLF001
     datamodule: LightningDataModule = hydra.utils.instantiate(cfg.data)
 
-    log.info(f"Instantiating model <{cfg.model._target_}>")
+    log.info(f"Instantiating model <{cfg.model._target_}>")  # noqa: G004, SLF001
     model: LightningModule = hydra.utils.instantiate(cfg.model)
 
     log.info("Instantiating callbacks...")
@@ -66,7 +70,7 @@ def train(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     log.info("Instantiating loggers...")
     logger: list[Logger] = instantiate_loggers(cfg.get("logger"))
 
-    log.info(f"Instantiating trainer <{cfg.trainer._target_}>")
+    log.info(f"Instantiating trainer <{cfg.trainer._target_}>")  # noqa: G004, SLF001
     trainer: Trainer = hydra.utils.instantiate(
         cfg.trainer,
         callbacks=callbacks,
@@ -99,7 +103,7 @@ def train(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
             log.warning("Best ckpt not found! Using current weights for testing...")
             ckpt_path = None
         trainer.test(model=model, datamodule=datamodule, ckpt_path=ckpt_path)
-        log.info(f"Best ckpt path: {ckpt_path}")
+        log.info("Best ckpt path: %s", ckpt_path)
 
     test_metrics = trainer.callback_metrics
 
@@ -111,7 +115,7 @@ def train(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
 
 @hydra.main(version_base="1.3", config_path="../configs", config_name="train.yaml")
 def main(cfg: DictConfig) -> float | None:
-    """Main entry point for training.
+    """Entry point for training.
 
     :param cfg: DictConfig configuration composed by Hydra.
     :return: Optional[float] with optimized metric value.
@@ -124,13 +128,11 @@ def main(cfg: DictConfig) -> float | None:
     metric_dict, _ = train(cfg)
 
     # safely retrieve metric value for hydra-based hyperparameter optimization
-    metric_value = get_metric_value(
+    # return optimized metric
+    return get_metric_value(
         metric_dict=metric_dict,
         metric_name=cfg.get("optimized_metric"),
     )
-
-    # return optimized metric
-    return metric_value
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-from typing import List
+"""Utilities for instantiating objects from config."""
 
 import hydra
 from lightning import Callback
@@ -11,7 +11,7 @@ log = pylogger.RankedLogger(__name__, rank_zero_only=True)
 
 
 def instantiate_callbacks(callbacks_cfg: DictConfig) -> list[Callback]:
-    """Instantiates callbacks from config.
+    """Instantiate callbacks from config.
 
     :param callbacks_cfg: A DictConfig object containing callback configurations.
     :return: A list of instantiated callbacks.
@@ -23,18 +23,19 @@ def instantiate_callbacks(callbacks_cfg: DictConfig) -> list[Callback]:
         return callbacks
 
     if not isinstance(callbacks_cfg, DictConfig):
-        raise TypeError("Callbacks config must be a DictConfig!")
+        msg = "Callbacks config must be a DictConfig!"
+        raise TypeError(msg)
 
-    for _, cb_conf in callbacks_cfg.items():
+    for cb_conf in callbacks_cfg.values():
         if isinstance(cb_conf, DictConfig) and "_target_" in cb_conf:
-            log.info(f"Instantiating callback <{cb_conf._target_}>")
+            log.info(f"Instantiating callback <{cb_conf._target_}>")  # noqa: G004, SLF001
             callbacks.append(hydra.utils.instantiate(cb_conf))
 
     return callbacks
 
 
 def instantiate_loggers(logger_cfg: DictConfig) -> list[Logger]:
-    """Instantiates loggers from config.
+    """Instantiate loggers from config.
 
     :param logger_cfg: A DictConfig object containing logger configurations.
     :return: A list of instantiated loggers.
@@ -46,11 +47,12 @@ def instantiate_loggers(logger_cfg: DictConfig) -> list[Logger]:
         return logger
 
     if not isinstance(logger_cfg, DictConfig):
-        raise TypeError("Logger config must be a DictConfig!")
+        msg = "Logger config must be a DictConfig!"
+        raise TypeError(msg)
 
-    for _, lg_conf in logger_cfg.items():
+    for lg_conf in logger_cfg.items():
         if isinstance(lg_conf, DictConfig) and "_target_" in lg_conf:
-            log.info(f"Instantiating logger <{lg_conf._target_}>")
+            log.info(f"Instantiating logger <{lg_conf._target_}>")  # noqa: G004, SLF001
             logger.append(hydra.utils.instantiate(lg_conf))
 
     return logger

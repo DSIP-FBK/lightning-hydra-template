@@ -1,7 +1,9 @@
+"""Utility functions."""
+
 import warnings
 from collections.abc import Callable
 from importlib.util import find_spec
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 from omegaconf import DictConfig
 
@@ -11,7 +13,7 @@ log = pylogger.RankedLogger(__name__, rank_zero_only=True)
 
 
 def extras(cfg: DictConfig) -> None:
-    """Applies optional utilities before the task is started.
+    """Apply optional utilities before the task is started.
 
     Utilities:
         - Ignoring python warnings
@@ -63,7 +65,7 @@ def task_wrapper(task_func: Callable) -> Callable:
 
     :return: The wrapped task function.
 
-    """
+    """  # noqa: E501, D401
 
     def wrap(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
         # execute the task
@@ -75,15 +77,16 @@ def task_wrapper(task_func: Callable) -> Callable:
             # save exception to `.log` file
             log.exception("")
 
-            # some hyperparameter combinations might be invalid or cause out-of-memory errors
+            # some hyperparameter combinations might be invalid or cause out-of-memory
+            # errors
             # so when using hparam search plugins like Optuna, you might want to disable
             # raising the below exception to avoid multirun failure
-            raise ex
+            raise ex  # noqa: TRY201
 
         # things to always do after either success or exception
         finally:
             # display output dir path in terminal
-            log.info(f"Output dir: {cfg.paths.output_dir}")
+            log.info(f"Output dir: {cfg.paths.output_dir}")  # noqa: G004
 
             # always close wandb run (even if exception occurs so multirun won't fail)
             if find_spec("wandb"):  # check if wandb is installed
@@ -113,13 +116,16 @@ def get_metric_value(
         return None
 
     if metric_name not in metric_dict:
-        raise Exception(
+        msg = (
             f"Metric value not found! <metric_name={metric_name}>\n"
             "Make sure metric name logged in LightningModule is correct!\n"
-            "Make sure `optimized_metric` name in `hparams_search` config is correct!",
+            "Make sure `optimized_metric` name in `hparams_search` config is correct!"
+        )
+        raise Exception(  # noqa: TRY002
+            msg,
         )
 
     metric_value = metric_dict[metric_name].item()
-    log.info(f"Retrieved metric value! <{metric_name}={metric_value}>")
+    log.info(f"Retrieved metric value! <{metric_name}={metric_value}>")  # noqa: G004
 
     return metric_value

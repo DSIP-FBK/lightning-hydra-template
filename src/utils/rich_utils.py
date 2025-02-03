@@ -1,3 +1,4 @@
+"""Utilities for rich printing and logging."""
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -26,17 +27,17 @@ def print_config_tree(
         "paths",
         "extras",
     ),
-    resolve: bool = False,
-    save_to_file: bool = False,
+    resolve: bool = False,  # noqa: FBT001, FBT002
+    save_to_file: bool = False,  # noqa: FBT001, FBT002
 ) -> None:
-    """Prints the contents of a DictConfig as a tree structure using the Rich library.
+    """Print the contents of a DictConfig as a tree structure using the Rich library.
 
     :param cfg: A DictConfig composed by Hydra.
     :param print_order: Determines in what order config components are printed. Default is ``("data", "model",
     "callbacks", "logger", "trainer", "paths", "extras")``.
     :param resolve: Whether to resolve reference fields of DictConfig. Default is ``False``.
     :param save_to_file: Whether to export config to the hydra output folder. Default is ``False``.
-    """
+    """  # noqa: E501
     style = "dim"
     tree = rich.tree.Tree("CONFIG", style=style, guide_style=style)
 
@@ -45,7 +46,7 @@ def print_config_tree(
     # add fields from `print_order` to queue
     for field in print_order:
         queue.append(field) if field in cfg else log.warning(
-            f"Field '{field}' not found in config. Skipping '{field}' config printing...",
+            f"Field '{field}' not found in config. Skipping '{field}' config printing...",  # noqa: G004, E501
         )
 
     # add all the other fields to queue (not specified in `print_order`)
@@ -70,20 +71,21 @@ def print_config_tree(
 
     # save config tree to file
     if save_to_file:
-        with open(Path(cfg.paths.output_dir, "config_tree.log"), "w") as file:
+        with Path(cfg.paths.output_dir, "config_tree.log").open("w") as file:
             rich.print(tree, file=file)
 
 
 @rank_zero_only
-def enforce_tags(cfg: DictConfig, save_to_file: bool = False) -> None:
+def enforce_tags(cfg: DictConfig, save_to_file: bool = False) -> None:  # noqa: FBT001, FBT002
     """Prompts user to input tags from command line if no tags are provided in config.
 
     :param cfg: A DictConfig composed by Hydra.
     :param save_to_file: Whether to export tags to the hydra output folder. Default is ``False``.
-    """
+    """  # noqa: E501
     if not cfg.get("tags"):
         if "id" in HydraConfig().cfg.hydra.job:
-            raise ValueError("Specify tags before launching a multirun!")
+            msg = "Specify tags before launching a multirun!"
+            raise ValueError(msg)
 
         log.warning("No tags provided in config. Prompting user to input tags...")
         tags = Prompt.ask("Enter a list of comma separated tags", default="dev")
@@ -92,8 +94,8 @@ def enforce_tags(cfg: DictConfig, save_to_file: bool = False) -> None:
         with open_dict(cfg):
             cfg.tags = tags
 
-        log.info(f"Tags: {cfg.tags}")
+        log.info(f"Tags: {cfg.tags}")  # noqa: G004
 
     if save_to_file:
-        with open(Path(cfg.paths.output_dir, "tags.log"), "w") as file:
+        with Path(cfg.paths.output_dir, "tags.log").open("w") as file:
             rich.print(cfg.tags, file=file)

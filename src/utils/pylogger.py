@@ -1,3 +1,5 @@
+"""A multi-GPU-friendly python command line logger."""
+
 import logging
 from collections.abc import Mapping
 from typing import Optional
@@ -11,15 +13,18 @@ class RankedLogger(logging.LoggerAdapter):
     def __init__(
         self,
         name: str = __name__,
-        rank_zero_only: bool = False,
+        rank_zero_only: bool = False,  # noqa: FBT001, FBT002
         extra: Mapping[str, object] | None = None,
     ) -> None:
-        """Initializes a multi-GPU-friendly python command line logger that logs on all processes
-        with their rank prefixed in the log message.
+        """Initialize a multi-GPU-friendly python command line logger.
+
+        Logs on all processes with their rank prefixed in the log message.
 
         :param name: The name of the logger. Default is ``__name__``.
-        :param rank_zero_only: Whether to force all logs to only occur on the rank zero process. Default is `False`.
-        :param extra: (Optional) A dict-like object which provides contextual information. See `logging.LoggerAdapter`.
+        :param rank_zero_only: Whether to force all logs to only occur on the rank zero
+        process. Default is `False`.
+        :param extra: (Optional) A dict-like object which provides contextual
+        information. See `logging.LoggerAdapter`.
         """
         logger = logging.getLogger(name)
         super().__init__(logger=logger, extra=extra)
@@ -30,25 +35,24 @@ class RankedLogger(logging.LoggerAdapter):
         level: int,
         msg: str,
         rank: int | None = None,
-        *args,
-        **kwargs,
+        *args: tuple,
+        **kwargs: dict,
     ) -> None:
-        """Delegate a log call to the underlying logger, after prefixing its message with the rank
-        of the process it's being logged from. If `'rank'` is provided, then the log will only
-        occur on that rank/process.
+        """Delegate a log call to the underlying logger, after prefixing its message with the rankof the process it's being logged from. If `'rank'` is provided, then the log will only occur on that rank/process.
 
         :param level: The level to log at. Look at `logging.__init__.py` for more information.
         :param msg: The message to log.
         :param rank: The rank to log at.
         :param args: Additional args to pass to the underlying logging function.
         :param kwargs: Any additional keyword args to pass to the underlying logging function.
-        """
+        """  # noqa: E501
         if self.isEnabledFor(level):
             msg, kwargs = self.process(msg, kwargs)
             current_rank = getattr(rank_zero_only, "rank", None)
             if current_rank is None:
+                msg = "The `rank_zero_only.rank` needs to be set before use"
                 raise RuntimeError(
-                    "The `rank_zero_only.rank` needs to be set before use",
+                    msg,
                 )
             msg = rank_prefixed_message(msg, current_rank)
             if self.rank_zero_only:
