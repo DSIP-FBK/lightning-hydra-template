@@ -1,4 +1,5 @@
 """Utilities for rich printing and logging."""
+
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -27,8 +28,9 @@ def print_config_tree(
         "paths",
         "extras",
     ),
-    resolve: bool = False,  # noqa: FBT001, FBT002
-    save_to_file: bool = False,  # noqa: FBT001, FBT002
+    *,
+    resolve: bool = False,
+    save_to_file: bool = False,
 ) -> None:
     """Print the contents of a DictConfig as a tree structure using the Rich library.
 

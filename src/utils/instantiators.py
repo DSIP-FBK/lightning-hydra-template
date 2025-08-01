@@ -28,7 +28,7 @@ def instantiate_callbacks(callbacks_cfg: DictConfig) -> list[Callback]:
 
     for cb_conf in callbacks_cfg.values():
         if isinstance(cb_conf, DictConfig) and "_target_" in cb_conf:
-            log.info(f"Instantiating callback <{cb_conf._target_}>")  # noqa: G004, SLF001
+            log.info(f"Instantiating callback <{cb_conf._target_}>")  # noqa: G004
             callbacks.append(hydra.utils.instantiate(cb_conf))
 
     return callbacks
@@ -52,7 +52,7 @@ def instantiate_loggers(logger_cfg: DictConfig) -> list[Logger]:
 
     for lg_conf in logger_cfg.items():
         if isinstance(lg_conf, DictConfig) and "_target_" in lg_conf:
-            log.info(f"Instantiating logger <{lg_conf._target_}>")  # noqa: G004, SLF001
+            log.info(f"Instantiating logger <{lg_conf._target_}>")  # noqa: G004
             logger.append(hydra.utils.instantiate(lg_conf))
 
     return logger

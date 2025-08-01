@@ -1,4 +1,5 @@
 """Main entry point for training."""
+
 from typing import TYPE_CHECKING, Any
 
 import hydra
@@ -8,22 +9,6 @@ import torch
 from omegaconf import DictConfig
 
 rootutils.setup_root(__file__, pythonpath=True)
-# ------------------------------------------------------------------------------------ #
-# the setup_root above is equivalent to:
-# - adding project root dir to PYTHONPATH
-#       (so you don't need to force user to install project as a package)
-#       (necessary before importing any local modules e.g. `from src import utils`)
-# - setting up PROJECT_ROOT environment variable
-#       (which is used as a base for paths in "configs/paths/default.yaml")
-#       (this way all filepaths are the same no matter where you run the code)
-# - loading environment variables from ".env" in root dir
-#
-# you can remove it if you:
-# 1. either install project as a package or move entry files to project root dir
-# 2. set `root_dir` to "." in "configs/paths/default.yaml"
-#
-# more info: https://github.com/ashleve/rootutils
-# ------------------------------------------------------------------------------------ #
 
 from src.utils import (
     RankedLogger,
@@ -58,10 +43,10 @@ def train(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     if cfg.get("seed"):
         lightning.seed_everything(cfg.seed, workers=True)
 
-    log.info(f"Instantiating datamodule <{cfg.data._target_}>")  # noqa: G004, SLF001
+    log.info(f"Instantiating datamodule <{cfg.data._target_}>")  # noqa: G004
     datamodule: LightningDataModule = hydra.utils.instantiate(cfg.data)
 
-    log.info(f"Instantiating model <{cfg.model._target_}>")  # noqa: G004, SLF001
+    log.info(f"Instantiating model <{cfg.model._target_}>")  # noqa: G004
     model: LightningModule = hydra.utils.instantiate(cfg.model)
 
     log.info("Instantiating callbacks...")
@@ -70,7 +55,7 @@ def train(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     log.info("Instantiating loggers...")
     logger: list[Logger] = instantiate_loggers(cfg.get("logger"))
 
-    log.info(f"Instantiating trainer <{cfg.trainer._target_}>")  # noqa: G004, SLF001
+    log.info(f"Instantiating trainer <{cfg.trainer._target_}>")  # noqa: G004
     trainer: Trainer = hydra.utils.instantiate(
         cfg.trainer,
         callbacks=callbacks,
