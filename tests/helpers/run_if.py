@@ -1,16 +1,12 @@
-"""Adapted from:
-
-https://github.com/PyTorchLightning/pytorch-lightning/blob/master/tests/helpers/runif.py
-"""
+"""Adapted from https://github.com/PyTorchLightning/pytorch-lightning/blob/master/tests/helpers/runif.py."""
 
 import sys
-from typing import Any, Dict, Optional
+from typing import Any
 
 import pytest
 import torch
 from packaging.version import Version
 from pkg_resources import get_distribution
-from pytest import MarkDecorator
 
 from tests.helpers.package_available import (
     _COMET_AVAILABLE,
@@ -31,21 +27,22 @@ class RunIf:
     Fully compatible with `@pytest.mark`.
 
     Example:
-
     ```python
         @RunIf(min_torch="1.8")
         @pytest.mark.parametrize("arg1", [1.0, 2.0])
         def test_wrapper(arg1):
             assert arg1 > 0
     ```
+
     """
 
-    def __new__(
+    def __new__(  # noqa: C901, PLR0912
         cls,
         min_gpus: int = 0,
-        min_torch: Optional[str] = None,
-        max_torch: Optional[str] = None,
-        min_python: Optional[str] = None,
+        min_torch: str | None = None,
+        max_torch: str | None = None,
+        min_python: str | None = None,
+        *,
         skip_windows: bool = False,
         sh: bool = False,
         tpu: bool = False,
@@ -55,9 +52,9 @@ class RunIf:
         neptune: bool = False,
         comet: bool = False,
         mlflow: bool = False,
-        **kwargs: Dict[Any, Any],
-    ) -> MarkDecorator:
-        """Creates a new `@RunIf` `MarkDecorator` decorator.
+        **kwargs: dict[Any, Any],
+    ) -> pytest.MarkDecorator:
+        """Create a new `@RunIf` `MarkDecorator` decorator.
 
         :param min_gpus: Min number of GPUs required to run test.
         :param min_torch: Minimum pytorch version to run test.
@@ -92,9 +89,8 @@ class RunIf:
             reasons.append(f"torch<{max_torch}")
 
         if min_python:
-            py_version = (
-                f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-            )
+            v_info = sys.version_info
+            py_version = f"{v_info.major}.{v_info.minor}.{v_info.micro}"
             conditions.append(Version(py_version) < Version(min_python))
             reasons.append(f"python>={min_python}")
 
@@ -134,7 +130,7 @@ class RunIf:
             conditions.append(not _MLFLOW_AVAILABLE)
             reasons.append("mlflow")
 
-        reasons = [rs for cond, rs in zip(conditions, reasons) if cond]
+        reasons = [rs for cond, rs in zip(conditions, reasons, strict=False) if cond]
         return pytest.mark.skipif(
             condition=any(conditions),
             reason=f"Requires: [{' + '.join(reasons)}]",

@@ -1,3 +1,5 @@
+"""Check if some packages are available in the environment and set global variables."""
+
 import platform
 
 import pkg_resources

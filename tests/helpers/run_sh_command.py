@@ -1,4 +1,4 @@
-from typing import List
+"""Just the run_sh_command function."""
 
 import pytest
 
@@ -8,8 +8,8 @@ if _SH_AVAILABLE:
     import sh
 
 
-def run_sh_command(command: List[str]) -> None:
-    """Default method for executing shell commands with `pytest` and `sh` package.
+def run_sh_command(command: list[str]) -> None:
+    """Execute shell commands with `pytest` and `sh` package.
 
     :param command: A list of shell commands as strings.
     """
