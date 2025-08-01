@@ -1,6 +1,5 @@
 """Test both training and evaluation."""
 
-import os
 from pathlib import Path
 
 import pytest
@@ -33,7 +32,7 @@ def test_train_eval(
     HydraConfig().set_config(cfg_train)
     train_metric_dict, _ = train(cfg_train)
 
-    if "last.ckpt" not in list(Path(tmp_path / "checkpoints").iterdir()):
+    if not (tmp_path / "checkpoints" / "last.ckpt").exists():
         pytest.fail("Checkpoint not saved")
 
     with open_dict(cfg_eval):

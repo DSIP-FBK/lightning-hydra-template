@@ -1,6 +1,5 @@
 """Test training with different configurations."""
 
-import os
 from pathlib import Path
 
 import pytest
@@ -92,10 +91,9 @@ def test_train_resume(tmp_path: Path, cfg_train: DictConfig) -> None:
     HydraConfig().set_config(cfg_train)
     metric_dict_1, _ = train(cfg_train)
 
-    files = list(Path(tmp_path / "checkpoints").iterdir())
-    if "last.ckpt" not in files:
+    if not (tmp_path / "checkpoints" / "last.ckpt").exists():
         pytest.fail("Checkpoint not saved")
-    if "epoch_000.ckpt" not in files:
+    if not (tmp_path / "checkpoints" / "epoch_000.ckpt").exists():
         pytest.fail("0th epoch checkpoint not saved")
 
     with open_dict(cfg_train):
@@ -104,11 +102,8 @@ def test_train_resume(tmp_path: Path, cfg_train: DictConfig) -> None:
 
     metric_dict_2, _ = train(cfg_train)
 
-    files = list(Path(tmp_path / "checkpoints").iterdir())
-    if "epoch_001.ckpt" not in files:
+    if not (tmp_path / "checkpoints" / "epoch_001.ckpt").exists():
         pytest.fail("1st epoch checkpoint not saved")
-    if not "epoch_002.ckpt" not in files:
-        pytest.fail("2nd epoch checkpoint not saved")
 
     if not metric_dict_1["train/acc"] < metric_dict_2["train/acc"]:
         pytest.fail(
