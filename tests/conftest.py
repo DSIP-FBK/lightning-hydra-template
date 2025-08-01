@@ -1,4 +1,4 @@
-"""This file prepares config fixtures for other tests."""
+"""Prepare config fixtures for other tests."""
 
 from pathlib import Path
 
@@ -11,7 +11,7 @@ from omegaconf import DictConfig, open_dict
 
 @pytest.fixture(scope="package")
 def cfg_train_global() -> DictConfig:
-    """A pytest fixture for setting up a default Hydra DictConfig for training.
+    """Pytest fixture for setting up a default Hydra DictConfig for training.
 
     :return: A DictConfig object containing a default Hydra configuration for training.
     """
@@ -38,12 +38,16 @@ def cfg_train_global() -> DictConfig:
 
 @pytest.fixture(scope="package")
 def cfg_eval_global() -> DictConfig:
-    """A pytest fixture for setting up a default Hydra DictConfig for evaluation.
+    """Pytest fixture for setting up a default Hydra DictConfig for evaluation.
 
     :return: A DictConfig containing a default Hydra configuration for evaluation.
     """
     with initialize(version_base="1.3", config_path="../configs"):
-        cfg = compose(config_name="eval.yaml", return_hydra_config=True, overrides=["ckpt_path=."])
+        cfg = compose(
+            config_name="eval.yaml",
+            return_hydra_config=True,
+            overrides=["ckpt_path=."],
+        )
 
         # set defaults for all tests
         with open_dict(cfg):
@@ -61,10 +65,12 @@ def cfg_eval_global() -> DictConfig:
     return cfg
 
 
-@pytest.fixture(scope="function")
-def cfg_train(cfg_train_global: DictConfig, tmp_path: Path) -> DictConfig:
-    """A pytest fixture built on top of the `cfg_train_global()` fixture, which accepts a temporary
-    logging path `tmp_path` for generating a temporary logging path.
+# ? Idk enough yet to fix the type error
+
+
+@pytest.fixture
+def cfg_train(cfg_train_global: DictConfig, tmp_path: Path) -> DictConfig:  # pyright: ignore[reportInvalidTypeForm]
+    """Pytest fixture built on top of the `cfg_train_global()` fixture, which accepts a temporary logging path `tmp_path` for generating a temporary logging path.
 
     This is called by each test which uses the `cfg_train` arg. Each test generates its own temporary logging path.
 
@@ -72,7 +78,7 @@ def cfg_train(cfg_train_global: DictConfig, tmp_path: Path) -> DictConfig:
     :param tmp_path: The temporary logging path.
 
     :return: A DictConfig with updated output and log directories corresponding to `tmp_path`.
-    """
+    """  # noqa: E501
     cfg = cfg_train_global.copy()
 
     with open_dict(cfg):
@@ -84,10 +90,9 @@ def cfg_train(cfg_train_global: DictConfig, tmp_path: Path) -> DictConfig:
     GlobalHydra.instance().clear()
 
 
-@pytest.fixture(scope="function")
-def cfg_eval(cfg_eval_global: DictConfig, tmp_path: Path) -> DictConfig:
-    """A pytest fixture built on top of the `cfg_eval_global()` fixture, which accepts a temporary
-    logging path `tmp_path` for generating a temporary logging path.
+@pytest.fixture
+def cfg_eval(cfg_eval_global: DictConfig, tmp_path: Path) -> DictConfig:  # pyright: ignore[reportInvalidTypeForm]
+    """Pytest fixture built on top of the `cfg_eval_global()` fixture, which accepts a temporary logging path `tmp_path` for generating a temporary logging path.
 
     This is called by each test which uses the `cfg_eval` arg. Each test generates its own temporary logging path.
 
@@ -95,7 +100,7 @@ def cfg_eval(cfg_eval_global: DictConfig, tmp_path: Path) -> DictConfig:
     :param tmp_path: The temporary logging path.
 
     :return: A DictConfig with updated output and log directories corresponding to `tmp_path`.
-    """
+    """  # noqa: E501
     cfg = cfg_eval_global.copy()
 
     with open_dict(cfg):

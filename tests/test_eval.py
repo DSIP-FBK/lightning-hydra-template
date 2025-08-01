@@ -1,3 +1,5 @@
+"""Test both training and evaluation."""
+
 import os
 from pathlib import Path
 
@@ -10,15 +12,19 @@ from src.train import train
 
 
 @pytest.mark.slow
-def test_train_eval(tmp_path: Path, cfg_train: DictConfig, cfg_eval: DictConfig) -> None:
-    """Tests training and evaluation by training for 1 epoch with `train.py` then evaluating with
-    `eval.py`.
+def test_train_eval(
+    tmp_path: Path,
+    cfg_train: DictConfig,
+    cfg_eval: DictConfig,
+) -> None:
+    """Tests training and evaluation by training for 1 epoch with `train.py` then evaluating with `eval.py`.
 
     :param tmp_path: The temporary logging path.
     :param cfg_train: A DictConfig containing a valid training configuration.
     :param cfg_eval: A DictConfig containing a valid evaluation configuration.
-    """
-    assert str(tmp_path) == cfg_train.paths.output_dir == cfg_eval.paths.output_dir
+    """  # noqa: E501
+    if not str(tmp_path) == cfg_train.paths.output_dir == cfg_eval.paths.output_dir:
+        pytest.fail("Temporary logging path is incorrect")
 
     with open_dict(cfg_train):
         cfg_train.trainer.max_epochs = 1
@@ -27,7 +33,8 @@ def test_train_eval(tmp_path: Path, cfg_train: DictConfig, cfg_eval: DictConfig)
     HydraConfig().set_config(cfg_train)
     train_metric_dict, _ = train(cfg_train)
 
-    assert "last.ckpt" in os.listdir(tmp_path / "checkpoints")
+    if "last.ckpt" not in list(Path(tmp_path / "checkpoints").iterdir()):
+        pytest.fail("Checkpoint not saved")
 
     with open_dict(cfg_eval):
         cfg_eval.ckpt_path = str(tmp_path / "checkpoints" / "last.ckpt")
@@ -35,5 +42,12 @@ def test_train_eval(tmp_path: Path, cfg_train: DictConfig, cfg_eval: DictConfig)
     HydraConfig().set_config(cfg_eval)
     test_metric_dict, _ = evaluate(cfg_eval)
 
-    assert test_metric_dict["test/acc"] > 0.0
-    assert abs(train_metric_dict["test/acc"].item() - test_metric_dict["test/acc"].item()) < 0.001
+    if not test_metric_dict["test/acc"] > 0.0:
+        pytest.fail("Test accuracy is less than 0????")
+
+    diff_threshold: float = 0.001
+    if not (
+        abs(train_metric_dict["test/acc"].item() - test_metric_dict["test/acc"].item())
+        < diff_threshold
+    ):
+        pytest.fail("Train and test accuracies are not close")

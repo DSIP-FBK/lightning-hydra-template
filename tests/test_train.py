@@ -1,3 +1,5 @@
+"""Test training with different configurations."""
+
 import os
 from pathlib import Path
 
@@ -35,7 +37,7 @@ def test_train_fast_dev_run_gpu(cfg_train: DictConfig) -> None:
 
 
 @RunIf(min_gpus=1)
-@pytest.mark.slow()
+@pytest.mark.slow
 def test_train_epoch_gpu_amp(cfg_train: DictConfig) -> None:
     """Train 1 epoch on GPU with mixed-precision.
 
@@ -49,7 +51,7 @@ def test_train_epoch_gpu_amp(cfg_train: DictConfig) -> None:
     train(cfg_train)
 
 
-@pytest.mark.slow()
+@pytest.mark.slow
 def test_train_epoch_double_val_loop(cfg_train: DictConfig) -> None:
     """Train 1 epoch with validation loop twice per epoch.
 
@@ -62,7 +64,7 @@ def test_train_epoch_double_val_loop(cfg_train: DictConfig) -> None:
     train(cfg_train)
 
 
-@pytest.mark.slow()
+@pytest.mark.slow
 def test_train_ddp_sim(cfg_train: DictConfig) -> None:
     """Simulate DDP (Distributed Data Parallel) on 2 CPU processes.
 
@@ -77,7 +79,7 @@ def test_train_ddp_sim(cfg_train: DictConfig) -> None:
     train(cfg_train)
 
 
-@pytest.mark.slow()
+@pytest.mark.slow
 def test_train_resume(tmp_path: Path, cfg_train: DictConfig) -> None:
     """Run 1 epoch, finish, and resume for another epoch.
 
@@ -90,9 +92,11 @@ def test_train_resume(tmp_path: Path, cfg_train: DictConfig) -> None:
     HydraConfig().set_config(cfg_train)
     metric_dict_1, _ = train(cfg_train)
 
-    files = os.listdir(tmp_path / "checkpoints")
-    assert "last.ckpt" in files
-    assert "epoch_000.ckpt" in files
+    files = list(Path(tmp_path / "checkpoints").iterdir())
+    if "last.ckpt" not in files:
+        pytest.fail("Checkpoint not saved")
+    if "epoch_000.ckpt" not in files:
+        pytest.fail("0th epoch checkpoint not saved")
 
     with open_dict(cfg_train):
         cfg_train.ckpt_path = str(tmp_path / "checkpoints" / "last.ckpt")
@@ -100,9 +104,17 @@ def test_train_resume(tmp_path: Path, cfg_train: DictConfig) -> None:
 
     metric_dict_2, _ = train(cfg_train)
 
-    files = os.listdir(tmp_path / "checkpoints")
-    assert "epoch_001.ckpt" in files
-    assert "epoch_002.ckpt" not in files
+    files = list(Path(tmp_path / "checkpoints").iterdir())
+    if "epoch_001.ckpt" not in files:
+        pytest.fail("1st epoch checkpoint not saved")
+    if not "epoch_002.ckpt" not in files:
+        pytest.fail("2nd epoch checkpoint not saved")
 
-    assert metric_dict_1["train/acc"] < metric_dict_2["train/acc"]
-    assert metric_dict_1["val/acc"] < metric_dict_2["val/acc"]
+    if not metric_dict_1["train/acc"] < metric_dict_2["train/acc"]:
+        pytest.fail(
+            "First epoch accuracy is greater than second epoch accuracy for training",
+        )
+    if not metric_dict_1["val/acc"] < metric_dict_2["val/acc"]:
+        pytest.fail(
+            "First epoch accuracy is greater than second epoch accuracy for validation",
+        )

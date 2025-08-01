@@ -1,3 +1,5 @@
+"""Test training and evaluation configurations."""
+
 import hydra
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig
@@ -8,10 +10,7 @@ def test_train_config(cfg_train: DictConfig) -> None:
 
     :param cfg_train: A DictConfig containing a valid training configuration.
     """
-    assert cfg_train
-    assert cfg_train.data
-    assert cfg_train.model
-    assert cfg_train.trainer
+    check_config(cfg_train)
 
     HydraConfig().set_config(cfg_train)
 
@@ -25,13 +24,32 @@ def test_eval_config(cfg_eval: DictConfig) -> None:
 
     :param cfg_train: A DictConfig containing a valid evaluation configuration.
     """
-    assert cfg_eval
-    assert cfg_eval.data
-    assert cfg_eval.model
-    assert cfg_eval.trainer
+    check_config(cfg_eval)
 
     HydraConfig().set_config(cfg_eval)
 
     hydra.utils.instantiate(cfg_eval.data)
     hydra.utils.instantiate(cfg_eval.model)
     hydra.utils.instantiate(cfg_eval.trainer)
+
+
+def check_config(cfg: DictConfig) -> None:
+    """Check if the configuration is valid.
+
+    :param cfg: A DictConfig containing a valid training configuration.
+    """
+    if not cfg:
+        msg = "Training configuration is missing"
+        raise ValueError(msg)
+
+    if not cfg.data:
+        msg = "Data configuration is missing in training config"
+        raise ValueError(msg)
+
+    if not cfg.model:
+        msg = "Model configuration is missing in training config"
+        raise ValueError(msg)
+
+    if not cfg.trainer:
+        msg = "Trainer configuration is missing in training config"
+        raise ValueError(msg)
