@@ -35,8 +35,5 @@ data:
   batch_size: 64
 
 logger:
-  wandb:
-    tags: ${tags}
-    group: "mnist"
   aim:
     experiment: "mnist"
