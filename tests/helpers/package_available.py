@@ -28,7 +28,6 @@ _SH_AVAILABLE = not _IS_WINDOWS and _package_available("sh")
 _DEEPSPEED_AVAILABLE = not _IS_WINDOWS and _package_available("deepspeed")
 _FAIRSCALE_AVAILABLE = not _IS_WINDOWS and _package_available("fairscale")
 
-_WANDB_AVAILABLE = _package_available("wandb")
 _NEPTUNE_AVAILABLE = _package_available("neptune")
 _COMET_AVAILABLE = _package_available("comet_ml")
 _MLFLOW_AVAILABLE = _package_available("mlflow")

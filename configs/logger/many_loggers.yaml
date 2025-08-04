@@ -6,4 +6,3 @@ defaults:
   # - mlflow
   # - neptune
   - tensorboard
-  - wandb

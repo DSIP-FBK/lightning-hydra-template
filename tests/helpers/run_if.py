@@ -17,7 +17,6 @@ from tests.helpers.package_available import (
     _NEPTUNE_AVAILABLE,
     _SH_AVAILABLE,
     _TPU_AVAILABLE,
-    _WANDB_AVAILABLE,
 )
 
 
@@ -36,7 +35,7 @@ class RunIf:
 
     """
 
-    def __new__(  # noqa: C901, PLR0912
+    def __new__(  # noqa: C901
         cls,
         min_gpus: int = 0,
         min_torch: str | None = None,
@@ -48,7 +47,6 @@ class RunIf:
         tpu: bool = False,
         fairscale: bool = False,
         deepspeed: bool = False,
-        wandb: bool = False,
         neptune: bool = False,
         comet: bool = False,
         mlflow: bool = False,
@@ -65,7 +63,6 @@ class RunIf:
         :param sh: If `sh` module is required to run the test.
         :param fairscale: If `fairscale` module is required to run the test.
         :param deepspeed: If `deepspeed` module is required to run the test.
-        :param wandb: If `wandb` module is required to run the test.
         :param neptune: If `neptune` module is required to run the test.
         :param comet: If `comet` module is required to run the test.
         :param mlflow: If `mlflow` module is required to run the test.
@@ -113,10 +110,6 @@ class RunIf:
         if deepspeed:
             conditions.append(not _DEEPSPEED_AVAILABLE)
             reasons.append("deepspeed")
-
-        if wandb:
-            conditions.append(not _WANDB_AVAILABLE)
-            reasons.append("wandb")
 
         if neptune:
             conditions.append(not _NEPTUNE_AVAILABLE)
