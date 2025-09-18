@@ -50,7 +50,7 @@ def instantiate_loggers(logger_cfg: DictConfig) -> list[Logger]:
         msg = "Logger config must be a DictConfig!"
         raise TypeError(msg)
 
-    for lg_conf in logger_cfg.items():
+    for lg_conf in logger_cfg.values():
         if isinstance(lg_conf, DictConfig) and "_target_" in lg_conf:
             log.info(f"Instantiating logger <{lg_conf._target_}>")  # noqa: G004
             logger.append(hydra.utils.instantiate(lg_conf))

@@ -10,6 +10,7 @@ dependencies = [
     "hydra-optuna-sweeper>=1.2.0",
     "hydra-submitit-launcher>=1.2.0",
     "lightning>=2.5.0.post0",
+    "mlflow>=3.4.0",
     "pytest>=8.3.4",
     "pytest-xdist[psutil]>=3.8.0",
     "rich>=13.9.4",

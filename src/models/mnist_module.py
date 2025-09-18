@@ -1,4 +1,5 @@
 """Example of a `LightningModule` for MNIST classification."""
+
 from typing import Any
 
 import torch
