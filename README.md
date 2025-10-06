@@ -14,5 +14,5 @@ Improvements I've made:
 
 - Use `uv` like God intended
 - Everything is formatted with `ruff` as Mary wanted
-- The tests actually work and pass
+- The tests actually work and pass (the tests are now gone cuz ain't nobody got time fo dat)
 - Remove some unneccessary files/configs ~~I don't~~ we don't use
