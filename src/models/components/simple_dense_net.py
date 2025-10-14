@@ -19,15 +19,15 @@ class SimpleDenseNet(nn.Module):
 
         Parameters
         ----------
-        input_size : int
+        input_size : int, default=784
             The number of input features.
-        lin1_size : int
+        lin1_size : int, default=256
             The number of output features of the first linear layer.
-        lin2_size : int
+        lin2_size : int, default=256
             The number of output features of the second linear layer.
-        lin3_size : int
+        lin3_size : int, default=256
             The number of output features of the third linear layer.
-        output_size : int
+        output_size : int, default=10
             The size of the output layer.
 
         """
