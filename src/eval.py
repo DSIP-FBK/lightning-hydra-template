@@ -30,8 +30,16 @@ def evaluate(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     This method is wrapped in optional @task_wrapper decorator, that controls the
     behavior during failure. Useful for multiruns, saving info about the crash, etc.
 
-    :param cfg: DictConfig configuration composed by Hydra.
-    :return: Tuple[dict, dict] with metrics and dict with all instantiated objects.
+    Parameters
+    ----------
+    cfg : DictConfig
+        A configuration composed by Hydra.
+
+    Returns
+    -------
+    tuple[dict[str, Any], dict[str, Any]]
+        A dict with metrics and dict with all instantiated objects.
+
     """
     if not cfg.ckpt_path:
         msg = "No checkpoint path provided!"
@@ -77,7 +85,11 @@ def evaluate(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
 def main(cfg: DictConfig) -> None:
     """Entry point for evaluation.
 
-    :param cfg: DictConfig configuration composed by Hydra.
+    Parameters
+    ----------
+    cfg : DictConfig
+        A configuration composed by Hydra.
+
     """
     # apply extra utilities
     # (e.g. ask for tags if none are provided in cfg, print cfg tree, etc.)

@@ -17,10 +17,14 @@ def log_hyperparameters(object_dict: dict[str, Any]) -> None:
     Additionally saves:
         - Number of model parameters
 
-    :param object_dict: A dictionary containing the following objects:
+    Parameters
+    ----------
+    object_dict : dict[str, Any]
+        A dictionary containing the following objects:
         - `"cfg"`: A DictConfig object containing the main config.
         - `"model"`: The Lightning model.
         - `"trainer"`: The Lightning trainer.
+
     """
     hparams = {}
 

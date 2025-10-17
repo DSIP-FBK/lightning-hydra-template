@@ -20,7 +20,11 @@ def extras(cfg: DictConfig) -> None:
         - Setting tags from command line
         - Rich config printing
 
-    :param cfg: A DictConfig object containing the config tree.
+    Parameters
+    ----------
+    cfg : DictConfig
+        A configuration composed by Hydra.
+
     """
     # return if no `extras` config
     if not cfg.get("extras"):
@@ -61,9 +65,15 @@ def task_wrapper(task_func: Callable) -> Callable:
         return metric_dict, object_dict
     ```
 
-    :param task_func: The task function to be wrapped.
+    Parameters
+    ----------
+    task_func : Callable
+        The task function to be wrapped.
 
-    :return: The wrapped task function.
+    Returns
+    -------
+    Callable
+        The wrapped task function.
 
     """  # noqa: E501, D401
 
@@ -99,9 +109,18 @@ def get_metric_value(
 ) -> float | None:
     """Safely retrieves value of the metric logged in LightningModule.
 
-    :param metric_dict: A dict containing metric values.
-    :param metric_name: If provided, the name of the metric to retrieve.
-    :return: If a metric name was provided, the value of the metric.
+    Parameters
+    ----------
+    metric_dict : dict[str, Any]
+        A dict containing metric values.
+    metric_name : str | None
+        If provided, the name of the metric to retrieve.
+
+    Returns
+    -------
+    float | None
+        If a metric name was provided, the value of the metric.
+
     """
     if not metric_name:
         log.info("Metric name is None! Skipping metric value retrieval...")

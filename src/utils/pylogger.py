@@ -19,11 +19,17 @@ class RankedLogger(logging.LoggerAdapter):
 
         Logs on all processes with their rank prefixed in the log message.
 
-        :param name: The name of the logger. Default is ``__name__``.
-        :param rank_zero_only: Whether to force all logs to only occur on the rank zero
-        process. Default is `False`.
-        :param extra: (Optional) A dict-like object which provides contextual
-        information. See `logging.LoggerAdapter`.
+        Parameters
+        ----------
+        name : str, optional
+            The name of the logger. Default is ``__name__``.
+        rank_zero_only : bool, default=False
+            Whether to force all logs to only occur on the rank zero
+            process.
+        extra : dict, optional
+            (Optional) A dict-like object which provides contextual
+            information. See `logging.LoggerAdapter`.
+
         """
         logger = logging.getLogger(name)
         super().__init__(logger=logger, extra=extra)
@@ -39,11 +45,19 @@ class RankedLogger(logging.LoggerAdapter):
     ) -> None:
         """Delegate a log call to the underlying logger, after prefixing its message with the rankof the process it's being logged from. If `'rank'` is provided, then the log will only occur on that rank/process.
 
-        :param level: The level to log at. Look at `logging.__init__.py` for more information.
-        :param msg: The message to log.
-        :param rank: The rank to log at.
-        :param args: Additional args to pass to the underlying logging function.
-        :param kwargs: Any additional keyword args to pass to the underlying logging function.
+        Parameters
+        ----------
+        level : int
+            The level to log at. Look at `logging.__init__.py` for more information.
+        msg : str
+            The message to log.
+        rank : int | None, default=None
+            The rank to log at.
+        *args : tuple
+            Additional args to pass to the underlying logging function.
+        **kwargs : dict
+            Any additional keyword args to pass to the underlying logging function.
+
         """  # noqa: E501
         if self.isEnabledFor(level):
             msg, kwargs = self.process(msg, kwargs)

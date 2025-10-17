@@ -15,6 +15,17 @@ def instantiate_callbacks(callbacks_cfg: DictConfig) -> list[Callback]:
 
     :param callbacks_cfg: A DictConfig object containing callback configurations.
     :return: A list of instantiated callbacks.
+
+    Parameters
+    ----------
+    callbacks_cfg : DictConfig
+        Contains callback configurations.
+
+    Returns
+    -------
+    list[Callback]
+        A list of instantiated callbacks.
+
     """
     callbacks: list[Callback] = []
 
@@ -37,8 +48,16 @@ def instantiate_callbacks(callbacks_cfg: DictConfig) -> list[Callback]:
 def instantiate_loggers(logger_cfg: DictConfig) -> list[Logger]:
     """Instantiate loggers from config.
 
-    :param logger_cfg: A DictConfig object containing logger configurations.
-    :return: A list of instantiated loggers.
+    Parameters
+    ----------
+    logger_cfg : DictConfig
+        Contains logger configurations.
+
+    Returns
+    -------
+    list[Logger]
+        A list of instantiated loggers.
+
     """
     logger: list[Logger] = []
 

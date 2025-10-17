@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Any
 import hydra
 import lightning
 import rootutils
-import torch
 from omegaconf import DictConfig
 
 rootutils.setup_root(__file__, pythonpath=True)
@@ -31,13 +30,22 @@ log = RankedLogger(__name__, rank_zero_only=True)
 def train(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     """Trains the model. Can additionally evaluate on a testset, using best weights obtained during training.
 
-    Can additionally evaluate on a testset, using best weightsobtained during training.
+    Can additionally evaluate on a testset, using best weights obtained during training.
 
     This method is wrapped in optional @task_wrapper decorator, that controls the
     behavior duringfailure. Useful for multiruns, saving info about the crash, etc.
 
-    :param cfg: A DictConfig configuration composed by Hydra.
-    :return: A tuple with metrics and dict with all instantiated objects.
+
+    Parameters
+    ----------
+    cfg : DictConfig
+        A configuration composed by Hydra.
+
+    Returns
+    -------
+    tuple[dict[str, Any], dict[str, Any]]
+        A dict with metrics and dict with all instantiated objects.
+
     """  # noqa: E501
     # set seed for random number generators in pytorch, numpy and python.random
     if cfg.get("seed"):
@@ -102,8 +110,16 @@ def train(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
 def main(cfg: DictConfig) -> float | None:
     """Entry point for training.
 
-    :param cfg: DictConfig configuration composed by Hydra.
-    :return: Optional[float] with optimized metric value.
+    Parameters
+    ----------
+    cfg : DictConfig
+        A configuration composed by Hydra.
+
+    Returns
+    -------
+    float | None
+        The optimized metric value.
+
     """
     # apply extra utilities
     # (e.g. ask for tags if none are provided in cfg, print cfg tree, etc.)
