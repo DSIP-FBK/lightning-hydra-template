@@ -22,4 +22,7 @@ dependencies = [
     "sh>=2.2.2",
     "torch>=2.5.1",
     "torchvision>=0.22.1",
+    # 2.0 is not supported because hydra-optuna-sweeper was last published in 2023 ☠️☠️☠️
+    # https://github.com/optuna/optuna/discussions/4294#discussioncomment-4601610
+    "sqlalchemy==1.4.46",
 ]
