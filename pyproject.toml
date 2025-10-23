@@ -3,7 +3,7 @@ name = "lightning-hydra-template-rishabhW"
 version = "0.1.0"
 description = "My fork of the lightning hydra template"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = "==3.13.*"
 dependencies = [
     "hydra-colorlog>=1.2.0",
     "hydra-core>=1.3.2",
