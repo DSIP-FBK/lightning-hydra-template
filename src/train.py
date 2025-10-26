@@ -28,7 +28,7 @@ log = RankedLogger(__name__, rank_zero_only=True)
 
 @task_wrapper
 def train(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Trains the model. Can additionally evaluate on a testset, using best weights obtained during training.
+    """Trains the model.
 
     Can additionally evaluate on a testset, using best weights obtained during training.
 
@@ -46,7 +46,7 @@ def train(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     tuple[dict[str, Any], dict[str, Any]]
         A dict with metrics and dict with all instantiated objects.
 
-    """  # noqa: E501
+    """
     # set seed for random number generators in pytorch, numpy and python.random
     if cfg.get("seed"):
         lightning.seed_everything(cfg.seed, workers=True)
