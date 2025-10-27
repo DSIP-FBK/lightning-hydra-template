@@ -274,7 +274,9 @@ class MNISTLitModule(LightningModule):
             self.net = torch.compile(self.net)
 
     def configure_optimizers(self) -> dict[str, Any]:
-        """Choose what optimizers and learning-rate schedulers to use in your optimization.Normally you'd need one. But in the case of GANs or similar you might have multiple.
+        """Choose what optimizers and learning-rate schedulers to use in your optimization.
+
+        Normally you'd need one. But in the case of GANs or similar you might have multiple.
 
         Examples
         --------
