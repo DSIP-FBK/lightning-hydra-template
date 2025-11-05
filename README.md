@@ -6,13 +6,13 @@ _Suggestions are always welcome!_
 
 </div>
 
-This is my fork of [Lightning-Hydra-Template](https://github.com/ashleve/lightning-hydra-template). You can go read the README over there for all the details.
+This is my fork of [Lightning-Hydra-Template](https://github.com/ashleve/lightning-hydra-template). The README over there contains much more detail.
 
-The last commit to that repo was like 2 years ago ☠️
+The last commit to that repo was more than 2 years ago, and so it is a bit outdated.
 
 Improvements I've made:
 
-- Use `uv` like God intended
-- Everything is formatted with `ruff` as Mary wanted
-- The tests actually work and pass (the tests are now gone cuz ain't nobody got time fo dat)
-- Remove some unneccessary files/configs ~~I don't~~ we don't use
+- Use `uv` as the package manager. [Install uv here](https://docs.astral.sh/uv/getting-started/installation/)
+- Everything is formatted with `ruff`. [Ruff docs](https://docs.astral.sh/ruff/)
+- The tests actually work and pass (they have since been removed)
+- Remove unneccessary files/configs that aren't applicable to our use case
