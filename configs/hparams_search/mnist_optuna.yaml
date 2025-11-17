@@ -16,15 +16,18 @@ optimized_metric: "val/acc_best"
 hydra:
   mode: "MULTIRUN" # set hydra to multirun by default if this config is attached
 
+  job:
+  # ? Visually distinct separator
+  name: "${hydra.sweeper.study_name}@${paths.timestamp}@${hydra.job.num}"
+
   sweeper:
     _target_: hydra_plugins.hydra_optuna_sweeper.optuna_sweeper.OptunaSweeper
 
     # storage URL to persist optimization results
-    # for example, you can use SQLite if you set 'sqlite:///example.db'
-    storage: null
+    storage: "sqlite:///${hydra.sweeper.study_name}.db"
 
     # name of the study to persist optimization results
-    study_name: null
+    study_name: "TestRun"
 
     # number of parallel workers
     n_jobs: 1
