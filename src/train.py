@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 import hydra
 import lightning
 import rootutils
+import torch
 from lightning.pytorch.callbacks import ModelCheckpoint
 from omegaconf import DictConfig
 
@@ -142,4 +143,5 @@ def main(cfg: DictConfig) -> float | None:
 
 
 if __name__ == "__main__":
+    torch.set_float32_matmul_precision("high")
     main()

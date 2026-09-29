@@ -1,7 +1,8 @@
 defaults:
   - default
 
-strategy: ddp_find_unused_parameters_true
+# ? Using ddp_find_unused_parameters_true may be useful in some cases
+strategy: ddp
 
 accelerator: gpu
 devices: 4
