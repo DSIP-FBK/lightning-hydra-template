@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 import hydra
 import lightning
 import rootutils
+from lightning.pytorch.callbacks import ModelCheckpoint
 from omegaconf import DictConfig
 
 rootutils.setup_root(__file__, pythonpath=True)
@@ -91,7 +92,11 @@ def train(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
 
     if cfg.get("test"):
         log.info("Starting testing!")
-        ckpt_path = trainer.checkpoint_callback.best_model_path
+        ckpt = next(
+            (c for c in trainer.checkpoint_callbacks if isinstance(c, ModelCheckpoint)),
+            None,
+        )
+        ckpt_path = ckpt.best_model_path if ckpt is not None else None
         if ckpt_path == "":
             log.warning("Best ckpt not found! Using current weights for testing...")
             ckpt_path = None

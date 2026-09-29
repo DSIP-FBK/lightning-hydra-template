@@ -1,9 +1,14 @@
 """Contains the LightningModule for MNIST."""
 
-from typing import Any
+# %%
+from collections.abc import Callable
 
 import torch
 from lightning import LightningModule
+from lightning.pytorch.utilities.types import (
+    OptimizerConfig,
+    OptimizerLRSchedulerConfig,
+)
 from torchmetrics import MaxMetric, MeanMetric
 from torchmetrics.classification.accuracy import Accuracy
 
@@ -44,9 +49,11 @@ class MNISTLitModule(LightningModule):
     def __init__(
         self,
         net: torch.nn.Module,
-        optimizer: torch.optim.Optimizer,
-        scheduler: torch.optim.lr_scheduler,
-        compile: bool,  # noqa: FBT001, A002
+        # ? Because the config initializes them partially (i.e. as factory methods)
+        optimizer: Callable[..., torch.optim.Optimizer],
+        scheduler: Callable[..., torch.optim.lr_scheduler.LRScheduler],
+        *,
+        compile_model: bool = False,
     ) -> None:
         """Initialize a `MNISTLitModule`.
 
@@ -58,7 +65,7 @@ class MNISTLitModule(LightningModule):
             The optimizer to use for training.
         scheduler: torch.optim.lr_scheduler
             The learning rate scheduler to use for training.
-        compile: bool
+        compile_model: bool
             Whether to compile the model.
 
         """
@@ -71,7 +78,7 @@ class MNISTLitModule(LightningModule):
         self.net = net
         self.optimizer = optimizer
         self.scheduler = scheduler
-        self.compile = compile
+        self.compile_model = compile_model
 
         # loss function
         self.criterion = torch.nn.CrossEntropyLoss()
@@ -214,13 +221,15 @@ class MNISTLitModule(LightningModule):
 
     def on_validation_epoch_end(self) -> None:
         """Lightning hook that is called when a validation epoch ends."""
-        acc = self.val_acc.compute()  # get current val acc
+        acc = (
+            self.val_acc.compute()  # ty: ignore[missing-argument]
+        )  # get current val acc
         self.val_acc_best(acc)  # update best so far val acc
         # log `val_acc_best` as a value through `.compute()` method, instead of as a
         # metric object otherwise metric would be reset by lightning after each epoch
         self.log(
             "val/acc_best",
-            self.val_acc_best.compute(),
+            self.val_acc_best.compute(),  # ty: ignore[missing-argument]
             sync_dist=True,
             prog_bar=True,
         )
@@ -270,10 +279,10 @@ class MNISTLitModule(LightningModule):
             Either `"fit"`, `"validate"`, `"test"`, or `"predict"`.
 
         """  # noqa: E501
-        if self.compile and stage == "fit":
+        if self.compile_model and stage == "fit":
             self.net = torch.compile(self.net)
 
-    def configure_optimizers(self) -> dict[str, Any]:
+    def configure_optimizers(self) -> OptimizerConfig | OptimizerLRSchedulerConfig:
         """Choose what optimizers and learning-rate schedulers to use in your optimization.
 
         Normally you'd need one. But in the case of GANs or similar you might have multiple.
@@ -288,6 +297,10 @@ class MNISTLitModule(LightningModule):
             A dict containing the configured optimizers and learning-rate schedulers to be used for training.
 
         """  # noqa: E501
+        # ? Never encountered in practice
+        if self.trainer.model is None:
+            msg = "No model found. Are you calling this function outside Lightning?"
+            raise RuntimeError(msg)
         optimizer = self.optimizer(params=self.trainer.model.parameters())
         if self.scheduler is not None:
             scheduler = self.scheduler(optimizer=optimizer)
@@ -304,4 +317,18 @@ class MNISTLitModule(LightningModule):
 
 
 if __name__ == "__main__":
-    _ = MNISTLitModule(None, None, None, None)
+    from functools import partial
+
+    from rootutils import setup_root
+
+    setup_root(__file__, cwd=True, pythonpath=True)
+
+    from src.models.components.simple_dense_net import SimpleDenseNet
+
+    _model = MNISTLitModule(
+        net=SimpleDenseNet(),
+        optimizer=partial(torch.optim.Adam, lr=0.001),
+        scheduler=partial(torch.optim.lr_scheduler.StepLR, step_size=1),
+        compile_model=False,
+    )
+    # print(_model(torch.randn(2, 1, 28, 28)).shape)  # expect torch.Size([2, 10])

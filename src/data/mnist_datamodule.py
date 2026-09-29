@@ -165,6 +165,14 @@ class MNISTDataModule(LightningDataModule):
                 generator=torch.Generator().manual_seed(42),
             )
 
+    @staticmethod
+    def _require_dataset(dataset: Dataset | None) -> Dataset:
+        """Make sure the dataset is not `None`."""
+        if dataset is None:
+            msg = "Dataset is `None`. Call setup() before requesting dataloaders."
+            raise RuntimeError(msg)
+        return dataset
+
     def train_dataloader(self) -> DataLoader[Any]:
         """Create and return the train dataloader.
 
@@ -175,7 +183,7 @@ class MNISTDataModule(LightningDataModule):
 
         """
         return DataLoader(
-            dataset=self.data_train,
+            dataset=self._require_dataset(self.data_train),
             batch_size=self.batch_size_per_device,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
@@ -192,7 +200,7 @@ class MNISTDataModule(LightningDataModule):
 
         """
         return DataLoader(
-            dataset=self.data_val,
+            dataset=self._require_dataset(self.data_val),
             batch_size=self.batch_size_per_device,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
@@ -209,7 +217,7 @@ class MNISTDataModule(LightningDataModule):
 
         """
         return DataLoader(
-            dataset=self.data_test,
+            dataset=self._require_dataset(self.data_test),
             batch_size=self.batch_size_per_device,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,

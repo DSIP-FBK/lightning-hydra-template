@@ -64,7 +64,7 @@ def print_config_tree(
 
     # generate config tree from queue
     for field in queue:
-        branch = tree.add(field, style=style, guide_style=style)
+        branch = tree.add(str(field), style=style, guide_style=style)
 
         config_group = cfg[field]
         if isinstance(config_group, DictConfig):
