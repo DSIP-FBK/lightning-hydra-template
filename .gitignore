@@ -1,6 +1,9 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 
+# Cache
+.ruff_cache
+
 # C extensions
 *.so
 
