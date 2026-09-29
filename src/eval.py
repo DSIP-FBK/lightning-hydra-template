@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 import hydra
 import rootutils
+import torch
 from omegaconf import DictConfig
 
 rootutils.setup_root(__file__, pythonpath=True)
@@ -15,6 +16,7 @@ from src.utils import (
     log_hyperparameters,
     task_wrapper,
 )
+from src.utils.loading import sanitize_ckpt_path
 
 if TYPE_CHECKING:
     from lightning import LightningDataModule, LightningModule, Trainer
@@ -70,11 +72,12 @@ def evaluate(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
         log_hyperparameters(object_dict)
 
     log.info("Starting testing!")
-    trainer.test(model=model, datamodule=datamodule, ckpt_path=cfg.ckpt_path)
-
-    # for predictions use trainer.predict(...)
-    # predictions = trainer.predict(model=model, dataloaders=dataloaders,
-    # ckpt_path=cfg.ckpt_path)
+    trainer.test(
+        model=model,
+        datamodule=datamodule,
+        ckpt_path=sanitize_ckpt_path(cfg.ckpt_path),
+        weights_only=False,
+    )
 
     metric_dict = trainer.callback_metrics
 
@@ -99,4 +102,5 @@ def main(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
+    torch.set_float32_matmul_precision("high")
     main()
