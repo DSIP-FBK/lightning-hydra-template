@@ -12,6 +12,7 @@ rootutils.setup_root(__file__, pythonpath=True)
 from src.utils import (
     RankedLogger,
     extras,
+    instantiate_callbacks,
     instantiate_loggers,
     log_hyperparameters,
     task_wrapper,
@@ -19,7 +20,7 @@ from src.utils import (
 from src.utils.loading import sanitize_ckpt_path
 
 if TYPE_CHECKING:
-    from lightning import LightningDataModule, LightningModule, Trainer
+    from lightning import Callback, LightningDataModule, LightningModule, Trainer
     from lightning.pytorch.loggers import Logger
 
 log = RankedLogger(__name__, rank_zero_only=True)
@@ -53,6 +54,9 @@ def evaluate(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
     log.info(f"Instantiating model <{cfg.model._target_}>")  # noqa: G004
     model: LightningModule = hydra.utils.instantiate(cfg.model)
 
+    log.info("Instantiating callbacks...")
+    callbacks: list[Callback] = instantiate_callbacks(cfg.get("callbacks"))
+
     log.info("Instantiating loggers...")
     logger: list[Logger] = instantiate_loggers(cfg.get("logger"))
 
@@ -63,6 +67,7 @@ def evaluate(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
         "cfg": cfg,
         "datamodule": datamodule,
         "model": model,
+        "callbacks": callbacks,
         "logger": logger,
         "trainer": trainer,
     }
