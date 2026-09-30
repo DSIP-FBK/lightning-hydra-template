@@ -2,12 +2,13 @@
 
 # %%
 import tempfile
-from copy import deepcopy
 from pathlib import Path
 
 import torch
 from lightning import LightningModule
 from loguru import logger
+
+COMPILE_PREFIX = "._orig_mod."
 
 
 def custom_load(checkpoint: Path, module: LightningModule) -> LightningModule:
@@ -61,7 +62,7 @@ def sanitize_ckpt_path(ckpt_path: str | None) -> str | None:
         return ckpt_path
 
     logger.info(
-        "Detected torch.compiled checkpoint, stripping `_orig_mod.` from keys",
+        f"Detected torch.compiled checkpoint, stripping `{COMPILE_PREFIX}` from keys",
     )
 
     ckpt["state_dict"] = strip_state_dict(state_dict)
@@ -85,12 +86,10 @@ def strip_state_dict(state_dict: dict) -> dict:
         The stripped state_dict.
 
     """
-    # ? Needs to be a deepcopy otherwise RuntimeError
-    new_state_dict = deepcopy(state_dict)
+    new_state_dict = dict(state_dict)
 
     for k, v in state_dict.items():
-        if k.startswith("model._orig_mod."):
-            new_key = k.replace("model._orig_mod.", "model.")
-            new_state_dict[new_key] = v
+        if COMPILE_PREFIX in k:
+            new_state_dict[k.replace(COMPILE_PREFIX, ".")] = v
             del new_state_dict[k]
     return new_state_dict
