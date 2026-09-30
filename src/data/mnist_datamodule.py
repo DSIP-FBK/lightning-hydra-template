@@ -1,12 +1,25 @@
 """Contains the LightningDataModule for the MNSIT dataset."""
 
+from dataclasses import dataclass
 from typing import Any
 
 import torch
 from lightning import LightningDataModule
-from torch.utils.data import ConcatDataset, DataLoader, Dataset, random_split
+from torch.utils.data import DataLoader, Dataset, Subset, random_split
 from torchvision.datasets import MNIST
 from torchvision.transforms import transforms
+
+
+@dataclass(frozen=True)
+class DataSplit:
+    """Train/val/test subset sizes."""
+
+    train: int
+    val: int
+    test: int
+
+
+DEFAULT_SPLIT = DataSplit(55_000, 5_000, 10_000)
 
 
 class MNISTDataModule(LightningDataModule):
@@ -57,7 +70,7 @@ class MNISTDataModule(LightningDataModule):
     def __init__(
         self,
         data_dir: str = "data/",
-        train_val_test_split: tuple[int, int, int] = (55_000, 5_000, 10_000),
+        split: DataSplit = DEFAULT_SPLIT,
         batch_size: int = 64,
         num_workers: int = 0,
         pin_memory: bool = False,  # noqa: FBT001, FBT002
@@ -68,7 +81,7 @@ class MNISTDataModule(LightningDataModule):
         ----------
         data_dir : str, default="data/"
             The data directory
-        train_val_test_split : tuple[int, int, int], default=(55_000, 5_000, 10_000)
+        split : tuple[int, int, int], default=(55_000, 5_000, 10_000)
             The train, validation and test split
         batch_size : int, default=64
             The batch size
@@ -85,7 +98,7 @@ class MNISTDataModule(LightningDataModule):
         self.save_hyperparameters(logger=False)
 
         self.data_dir = data_dir
-        self.train_val_test_split = train_val_test_split
+        self.split = split
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.pin_memory = pin_memory
@@ -147,7 +160,9 @@ class MNISTDataModule(LightningDataModule):
             self.batch_size_per_device = self.batch_size // self.trainer.world_size
 
         # load and split datasets only if not loaded already
-        if not self.data_train and not self.data_val and not self.data_test:
+        if all(
+            data is None for data in (self.data_train, self.data_val, self.data_test)
+        ):
             trainset = MNIST(
                 self.data_dir,
                 train=True,
@@ -158,12 +173,19 @@ class MNISTDataModule(LightningDataModule):
                 train=False,
                 transform=self.transforms,
             )
-            dataset = ConcatDataset(datasets=[trainset, testset])
-            self.data_train, self.data_val, self.data_test = random_split(
-                dataset=dataset,
-                lengths=self.train_val_test_split,
-                generator=torch.Generator().manual_seed(42),
+            generator = torch.Generator().manual_seed(42)
+            self.data_train, self.data_val = random_split(
+                dataset=trainset,
+                lengths=[self.split.train, self.split.val],
+                generator=generator,
             )
+            if self.split.test >= len(testset):
+                self.data_test = testset
+            else:
+                indices = torch.randperm(len(testset), generator=generator)[
+                    : self.split.test
+                ].tolist()
+                self.data_test = Subset(testset, indices)
 
     @staticmethod
     def _require_dataset(dataset: Dataset | None) -> Dataset:
