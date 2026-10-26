@@ -34,6 +34,7 @@ class SimpleDenseNet(nn.Module):
         super().__init__()
 
         self.model = nn.Sequential(
+            nn.Flatten(),
             nn.Linear(input_size, lin1_size),
             nn.BatchNorm1d(lin1_size),
             nn.ReLU(),
@@ -60,11 +61,6 @@ class SimpleDenseNet(nn.Module):
             A tensor of predictions.
 
         """
-        batch_size, _channels, _width, _height = x.size()
-
-        # (batch, 1, width, height) -> (batch, 1*width*height)
-        x = x.view(batch_size, -1)
-
         return self.model(x)
 
 

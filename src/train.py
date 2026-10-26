@@ -51,7 +51,7 @@ def train(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
 
     """
     # set seed for random number generators in pytorch, numpy and python.random
-    if cfg.get("seed"):
+    if cfg.get("seed") is not None:
         lightning.seed_everything(cfg.seed, workers=True)
 
     log.info(f"Instantiating datamodule <{cfg.data._target_}>")  # noqa: G004

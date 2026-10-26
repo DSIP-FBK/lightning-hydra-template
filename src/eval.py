@@ -44,7 +44,7 @@ def evaluate(cfg: DictConfig) -> tuple[dict[str, Any], dict[str, Any]]:
         A dict with metrics and dict with all instantiated objects.
 
     """
-    if not cfg.ckpt_path:
+    if not cfg.get("ckpt_path"):
         msg = "No checkpoint path provided!"
         raise ValueError(msg)
 
